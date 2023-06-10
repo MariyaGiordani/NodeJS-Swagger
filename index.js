@@ -1,19 +1,19 @@
-const express = require("express");
-const cors = require("cors");
-const morgan = require("morgan");
-const low = require("lowdb");
-const swaggerUI = require("swagger-ui-express");
-const swaggerJsDoc = require("swagger-jsdoc");
-const booksRouter = require("./routes/books");
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import { Low } from 'lowdb';
+import { JSONFile } from 'lowdb/node';
+import SwaggerUI from 'swagger-ui-express';
+import SwaggerJsDoc from 'swagger-jsdoc';
+import { router } from './routes/books.js';
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3080;
 
-const FileSync = require("lowdb/adapters/FileSync");
+const adapter = new JSONFile('db.json');
+const defaultData = { books: [] };
+const db = new Low(adapter, defaultData);
 
-const adapter = new FileSync("db.json");
-const db = low(adapter);
-
-db.defaults({ books: [] }).write();
+db.write();
 
 const options = {
 	definition: {
@@ -25,25 +25,24 @@ const options = {
 		},
 		servers: [
 			{
-				url: "http://localhost:4000",
+				url: "http://localhost:3080",
 			},
 		],
 	},
 	apis: ["./routes/*.js"],
 };
 
-const specs = swaggerJsDoc(options);
+const specs = SwaggerJsDoc(options);
 
 const app = express();
 
-app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
+app.use("/api-docs", SwaggerUI.serve, SwaggerUI.setup(specs));
 
 app.db = db;
 
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-
-app.use("/books", booksRouter);
+app.use("/books", router);
 
 app.listen(PORT, () => console.log(`The server is running on port ${PORT}`));

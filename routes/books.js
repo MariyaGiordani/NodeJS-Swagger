@@ -1,20 +1,25 @@
-const express = require("express")
-const router = express.Router()
-const { nanoid } = require("nanoid")
+import express from 'express';
+import { nanoid } from 'nanoid';
+
+const router = express.Router();
 
 const idLength = 8;
 
 router.get("/", (req, res) => {
-    const books = req.app.db.get("books")
+	const books = req.app.db.get("books");
 
-    res.send(books)
-})
+	res.send(books);
+});
 
 router.get("/:id", (req, res) => {
-    const book = req.app.disabled.get("books").find({ id: req.params.id }).value()
-
-    res.send(book)
-})
+    const book = req.app.db.get("books").find({ id: req.params.id }).value();
+  
+    if(!book){
+      res.sendStatus(404)
+    }
+  
+      res.send(book);
+});
 
 router.post("/:id", (req, res) => {
     try{
@@ -49,4 +54,4 @@ router.delete("/:id", (req, res) => {
 	res.sendStatus(200);
 });
 
-module.exports = router;
+export {router};
